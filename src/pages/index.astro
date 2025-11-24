@@ -1,0 +1,84 @@
+---
+import '../styles/globals.scss'
+import symbols from '../lib/symbols'
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Symbols - Click to Copy</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Symbols</h1>
+        <p class="subtitle">Click any symbol to copy it to your clipboard</p>
+
+        {symbols.categories.map((category) => (
+            <div class="category">
+                <h2>{category.name}</h2>
+                <div class="symbols-grid">
+                    {category.symbols.map((item) => (
+                        <button class="symbol-btn" data-symbol={item.symbol}>
+                            <span class="symbol">{item.symbol}</span>
+                            <span class="symbol-name">{item.name}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        ))}
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <footer>
+        Click any symbol to copy it to your clipboard
+    </footer>
+
+    <script>
+        const toast: HTMLDivElement | null = (document.getElementById('toast') as HTMLDivElement);
+        type Timeout = /*unresolved*/ any
+        let toastTimeout: Timeout;
+
+        function showToast(symbol: string) {
+            toast && (toast.textContent = `Copied "${symbol}"`);
+            toast?.classList.add('show');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast?.classList.remove('show');
+            }, 1500);
+        }
+
+        document.querySelectorAll('.symbol-btn').forEach((btn: Element) => {
+            btn.addEventListener('click', async () => {
+                const symbol: string | undefined = (btn as HTMLButtonElement).dataset.symbol;
+
+                try {
+                    symbol && await navigator.clipboard.writeText(symbol);
+
+                    btn.classList.add('copied');
+                    setTimeout(() => btn.classList.remove('copied'), 300);
+
+                    symbol && showToast(symbol);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    symbol && (textarea.value = symbol);
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+
+                    btn.classList.add('copied');
+                    setTimeout(() => btn.classList.remove('copied'), 300);
+
+                    symbol && showToast(symbol);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
